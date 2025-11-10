@@ -1,4 +1,4 @@
-# Borda
+# borda
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/tbloncar/borda.svg)](https://pkg.go.dev/github.com/tbloncar/borda)
 
