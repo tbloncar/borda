@@ -1,5 +1,7 @@
 # Borda
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/tbloncar/borda.svg)](https://pkg.go.dev/github.com/tbloncar/borda)
+
 A Go implementation of the [Borda count](https://en.wikipedia.org/wiki/Borda_count) ranked voting system.
 
 ## Installation
