@@ -1,6 +1,6 @@
 # Borda
 
-A simple implementation of the [Borda count](https://en.wikipedia.org/wiki/Borda_count) ranked voting system.
+A Go implementation of the [Borda count](https://en.wikipedia.org/wiki/Borda_count) ranked voting system.
 
 ## Usage
 
@@ -22,7 +22,14 @@ results, err := contest.Rank(ballots)
 if err != nil {
     panic(err)
 }
-fmt.Println(results)
+fmt.Printf("%+v\n", results)
+/*
+[
+  {Candidate:{Id:C} Score:9},
+  {Candidate:{Id:A} Score:8},
+  {Candidate:{Id:B} Score:7},
+]
+*/
 ```
 
 ### Options
