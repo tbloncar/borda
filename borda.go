@@ -64,7 +64,6 @@ func (c *Contest) Rank(
 	ballots [][]Candidate,
 ) ([]Result, error) {
 	if c.RequireFullBallot {
-		// Check that each voter has voted for all candidates
 		for _, ballot := range ballots {
 			if len(ballot) != c.NVotes {
 				return nil, errors.New("detected incomplete ballot")
@@ -72,23 +71,19 @@ func (c *Contest) Rank(
 		}
 	}
 
-	// Create a map to store the score for each candidate
 	scores := make(map[Candidate]int)
 
-	// Count the number of votes for each candidate
 	for _, ballot := range ballots {
 		for i, candidate := range ballot {
 			scores[candidate] += c.RankScores[i]
 		}
 	}
 
-	// Convert the scores map to a slice of results
 	results := make([]Result, 0, len(scores))
 	for candidate, score := range scores {
 		results = append(results, Result{Candidate: candidate, Score: score})
 	}
 
-	// Sort the results by score in descending order
 	sort.Slice(results, func(i, j int) bool { return results[i].Score > results[j].Score })
 
 	return results, nil

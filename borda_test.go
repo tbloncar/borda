@@ -6,50 +6,97 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBordaRank_FullBallotRequired(t *testing.T) {
-	ballots := [][]Candidate{
-		{{Id: "A"}, {Id: "B"}, {Id: "C"}},
-		{{Id: "B"}, {Id: "C"}, {Id: "A"}},
-		{{Id: "C"}, {Id: "A"}, {Id: "B"}},
-		{{Id: "C"}, {Id: "A"}, {Id: "B"}},
-	}
-	contest, err := NewBordaContest(3, WithRequireFullBallot(true))
-	assert.NoError(t, err)
-	results, err := contest.Rank(ballots)
-	assert.NoError(t, err)
-	assert.Equal(t, results, []Result{
-		{Candidate: Candidate{Id: "C"}, Score: 9},
-		{Candidate: Candidate{Id: "A"}, Score: 8},
-		{Candidate: Candidate{Id: "B"}, Score: 7},
-	})
-}
+func TestBordaContest_Rank(t *testing.T) {
+	ca, cb, cc := Candidate{"A"}, Candidate{"B"}, Candidate{"C"}
 
-func TestBordaRank_FullBallotNotRequired(t *testing.T) {
-	ballots := [][]Candidate{
-		{{Id: "A"}, {Id: "B"}, {Id: "C"}},
-		{{Id: "B"}, {Id: "C"}, {Id: "A"}},
-		{{Id: "C"}, {Id: "A"}},
-		{{Id: "C"}, {Id: "A"}},
+	tests := []struct {
+		name            string
+		ballots         [][]Candidate
+		requireFull     bool
+		rankScores      []int
+		expectedResults []Result
+		expectErr       string
+	}{
+		{
+			name: "FullBallotRequired",
+			ballots: [][]Candidate{
+				{ca, cb, cc},
+				{cb, cc, ca},
+				{cc, ca, cb},
+				{cc, ca, cb},
+			},
+			requireFull: true,
+			rankScores:  nil,
+			expectedResults: []Result{
+				{Candidate: cc, Score: 9},
+				{Candidate: ca, Score: 8},
+				{Candidate: cb, Score: 7},
+			},
+			expectErr: "",
+		},
+		{
+			name: "FullBallotNotRequired",
+			ballots: [][]Candidate{
+				{ca, cb, cc},
+				{cb, cc, ca},
+				{cc, ca},
+				{cc, ca},
+			},
+			rankScores:  nil,
+			requireFull: false,
+			expectedResults: []Result{
+				{Candidate: cc, Score: 9},
+				{Candidate: ca, Score: 8},
+				{Candidate: cb, Score: 5},
+			},
+			expectErr: "",
+		},
+		{
+			name: "WithRankScores",
+			ballots: [][]Candidate{
+				{ca, cb, cc},
+				{cb, cc, ca},
+				{cc, ca, cb},
+				{cc, ca, cb},
+			},
+			requireFull: true,
+			rankScores:  []int{4, 3, 2},
+			expectedResults: []Result{
+				{Candidate: cc, Score: 13},
+				{Candidate: ca, Score: 12},
+				{Candidate: cb, Score: 11},
+			},
+			expectErr: "",
+		},
+		{
+			name: "IncompleteBallotError",
+			ballots: [][]Candidate{
+				{ca, cb, cc},
+				{cb, cc},
+				{cc, ca, cb},
+			},
+			rankScores:      nil,
+			requireFull:     true,
+			expectedResults: nil,
+			expectErr:       "detected incomplete ballot",
+		},
 	}
-	contest, err := NewBordaContest(3, WithRequireFullBallot(false))
-	assert.NoError(t, err)
-	results, err := contest.Rank(ballots)
-	assert.NoError(t, err)
-	assert.Equal(t, results, []Result{
-		{Candidate: Candidate{Id: "C"}, Score: 9},
-		{Candidate: Candidate{Id: "A"}, Score: 8},
-		{Candidate: Candidate{Id: "B"}, Score: 5},
-	})
-}
 
-func TestBordaRank_IncompleteBallot(t *testing.T) {
-	ballots := [][]Candidate{
-		{{Id: "A"}, {Id: "B"}, {Id: "C"}},
-		{{Id: "B"}, {Id: "C"}},
-		{{Id: "C"}, {Id: "A"}, {Id: "B"}},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			options := []Option{WithRequireFullBallot(tt.requireFull)}
+			if tt.rankScores != nil {
+				options = append(options, WithRankScores(tt.rankScores))
+			}
+			contest, err := NewBordaContest(3, options...)
+			assert.NoError(t, err)
+			results, err := contest.Rank(tt.ballots)
+			if tt.expectErr != "" {
+				assert.ErrorContains(t, err, tt.expectErr)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedResults, results)
+			}
+		})
 	}
-	contest, err := NewBordaContest(3, WithRequireFullBallot(true))
-	assert.NoError(t, err)
-	_, err = contest.Rank(ballots)
-	assert.ErrorContains(t, err, "detected incomplete ballot")
 }
