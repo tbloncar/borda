@@ -2,6 +2,12 @@
 
 A Go implementation of the [Borda count](https://en.wikipedia.org/wiki/Borda_count) ranked voting system.
 
+## Installation
+
+```sh
+go get github.com/tbloncar/borda
+```
+
 ## Usage
 
 This code creates a new Borda contest with 3 candidates and ranks them based on the provided ballots.

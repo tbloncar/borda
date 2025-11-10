@@ -1,25 +1,26 @@
-package borda
+package borda_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tbloncar/borda"
 )
 
 func TestBordaContest_Rank(t *testing.T) {
-	ca, cb, cc := Candidate{"A"}, Candidate{"B"}, Candidate{"C"}
+	ca, cb, cc := borda.Candidate{"A"}, borda.Candidate{"B"}, borda.Candidate{"C"}
 
 	tests := []struct {
 		name            string
-		ballots         [][]Candidate
+		ballots         [][]borda.Candidate
 		requireFull     bool
 		rankScores      []int
-		expectedResults []Result
+		expectedResults []borda.Result
 		expectErr       string
 	}{
 		{
 			name: "FullBallotRequired",
-			ballots: [][]Candidate{
+			ballots: [][]borda.Candidate{
 				{ca, cb, cc},
 				{cb, cc, ca},
 				{cc, ca, cb},
@@ -27,7 +28,7 @@ func TestBordaContest_Rank(t *testing.T) {
 			},
 			requireFull: true,
 			rankScores:  nil,
-			expectedResults: []Result{
+			expectedResults: []borda.Result{
 				{Candidate: cc, Score: 9},
 				{Candidate: ca, Score: 8},
 				{Candidate: cb, Score: 7},
@@ -36,7 +37,7 @@ func TestBordaContest_Rank(t *testing.T) {
 		},
 		{
 			name: "FullBallotNotRequired",
-			ballots: [][]Candidate{
+			ballots: [][]borda.Candidate{
 				{ca, cb, cc},
 				{cb, cc, ca},
 				{cc, ca},
@@ -44,7 +45,7 @@ func TestBordaContest_Rank(t *testing.T) {
 			},
 			rankScores:  nil,
 			requireFull: false,
-			expectedResults: []Result{
+			expectedResults: []borda.Result{
 				{Candidate: cc, Score: 9},
 				{Candidate: ca, Score: 8},
 				{Candidate: cb, Score: 5},
@@ -53,7 +54,7 @@ func TestBordaContest_Rank(t *testing.T) {
 		},
 		{
 			name: "WithRankScores",
-			ballots: [][]Candidate{
+			ballots: [][]borda.Candidate{
 				{ca, cb, cc},
 				{cb, cc, ca},
 				{cc, ca, cb},
@@ -61,7 +62,7 @@ func TestBordaContest_Rank(t *testing.T) {
 			},
 			requireFull: true,
 			rankScores:  []int{4, 3, 2},
-			expectedResults: []Result{
+			expectedResults: []borda.Result{
 				{Candidate: cc, Score: 13},
 				{Candidate: ca, Score: 12},
 				{Candidate: cb, Score: 11},
@@ -70,7 +71,7 @@ func TestBordaContest_Rank(t *testing.T) {
 		},
 		{
 			name: "IncompleteBallotError",
-			ballots: [][]Candidate{
+			ballots: [][]borda.Candidate{
 				{ca, cb, cc},
 				{cb, cc},
 				{cc, ca, cb},
@@ -84,11 +85,11 @@ func TestBordaContest_Rank(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			options := []Option{WithRequireFullBallot(tt.requireFull)}
+			options := []borda.Option{borda.WithRequireFullBallot(tt.requireFull)}
 			if tt.rankScores != nil {
-				options = append(options, WithRankScores(tt.rankScores))
+				options = append(options, borda.WithRankScores(tt.rankScores))
 			}
-			contest, err := NewBordaContest(3, options...)
+			contest, err := borda.NewBordaContest(3, options...)
 			assert.NoError(t, err)
 			results, err := contest.Rank(tt.ballots)
 			if tt.expectErr != "" {
